@@ -8,7 +8,15 @@ const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:!isMobile,powerPrefe
 renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.5:2));renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();const SKY=new THREE.Color('#a8e4ff');scene.background=SKY.clone();scene.fog=new THREE.Fog('#c4ecff',22,46);
-const cam=new THREE.PerspectiveCamera(40,1,0.1,200);const CAMOFF=new THREE.Vector3(0,11,14);
+const cam=new THREE.PerspectiveCamera(40,1,0.1,260);const CAMBASE=new THREE.Vector3(0,11,14);const CAMOFF=CAMBASE.clone();
+// zoom: 1.3 = new default (~1.7x the visible area of the old 1.0 view); clamped, saved
+const ZMIN=0.85,ZMAX=1.8;let zoom=parseFloat(localStorage.getItem('br3d_zoom'));if(!(zoom>=ZMIN&&zoom<=ZMAX))zoom=1.3;
+function setZoom(z){zoom=Math.min(ZMAX,Math.max(ZMIN,z));localStorage.setItem('br3d_zoom',zoom.toFixed(3));}
+addEventListener('wheel',e=>{if(!document.body.classList.contains('in3d')||e.target.closest('#menu,#mapov,#wheel'))return;e.preventDefault();setZoom(zoom*Math.exp(e.deltaY*0.0015));},{passive:false});
+let pinch=null;const freeT=t=>!(t.target.closest&&t.target.closest('#touch .tb,#stickZone,#menu,#mapov,#wheel,button,.hbtn'));
+addEventListener('touchstart',e=>{if(e.touches.length===2&&[...e.touches].every(freeT)){const [a,b]=e.touches;pinch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),z:zoom};}},{passive:true});
+addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();const [a,b]=e.touches;const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);setZoom(pinch.z*pinch.d/Math.max(20,d));}},{passive:false});
+addEventListener('touchend',e=>{if(e.touches.length<2)pinch=null;});
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.fov=w/h>1.6?40:54;cam.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
 const hemi=new THREE.HemisphereLight('#fff6e0','#5aa070',1.2);scene.add(hemi);
@@ -48,7 +56,7 @@ function buildChunk(cx,cy,img){const g=new THREE.Group();g.userData.img=img;
 function disposeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry&&o.geometry!==boxG&&o.geometry!==canopyG&&o.geometry!==trunkG&&o.geometry!==coneG&&o.geometry!==rockG)o.geometry.dispose();if(o.material&&o.material!==canopyM&&o.material!==whiteM){if(o.material.map)o.material.map.dispose();o.material.dispose();}});}
 let chunkBudget=0;
 function updateChunks(hx,hz){chunkBudget=isMobile?2:3;const ccx=Math.floor(hx/CH),ccy=Math.floor(hz/CH);const want=new Set();
-  for(let dy=-2;dy<=1;dy++)for(let dx=-2;dx<=2;dx++){const cx=ccx+dx,cy=ccy+dy;if(cx<0||cy<0||cx*CH>=L.WW||cy*CH>=L.WH)continue;const k=cx+','+cy;want.add(k);
+  const ry=zoom>1.45?4:3,rx=zoom>1.45?3:2;for(let dy=-ry;dy<=1;dy++)for(let dx=-rx;dx<=rx;dx++){const cx=ccx+dx,cy=ccy+dy;if(cx<0||cy<0||cx*CH>=L.WW||cy*CH>=L.WH)continue;const k=cx+','+cy;want.add(k);
     const img=L.getChunk(cx,cy);if(!img)continue;const have=chunks.get(k);if(have&&have.userData.img===img)continue;if(chunkBudget--<=0&&have)continue;if(chunkBudget<-3)continue;
     if(have)disposeGroup(have);chunks.set(k,buildChunk(cx,cy,img));}
   for(const [k,g] of chunks)if(!want.has(k)){disposeGroup(g);chunks.delete(k);}}
@@ -69,7 +77,7 @@ function makeBuilding(b){const S=L.SETS[b.s]||{roof:['#c8a040','#6a4a20'],wall:'
   if(b.kind!=='house'&&b.kind!=='forsale'){const sign={inn:'#d04a3a',shop:'#3a8ad0',guild:'#d0a030',smith:'#555',harbor:'#2aa0a0'}[b.kind]||'#a07040';add(new THREE.BoxGeometry(.7,.45,.08),lam(sign),w/2-.3,hgt*.85,fz+.12,false);}
   if(b.kind==='house'||b.kind==='forsale')add(new THREE.BoxGeometry(.35,.8,.35),lam('#b07050'),w/4,hgt+1,-.2);
   g.position.set(cx,0,cz);g.userData.mats=[wallM,roof.material];g.userData.all=[];g.traverse(o=>{if(o.material&&o.material!==winM&&!g.userData.all.includes(o.material))g.userData.all.push(o.material)});scene.add(g);return g;}
-function updateBuildings(hx,hz){const R=30;const keep=new Set();
+function updateBuildings(hx,hz){const R=30*zoom;const keep=new Set();
   for(const b of L.buildings){if(Math.abs(b.x+2-hx)>R||Math.abs(b.y+1.5-hz)>R)continue;keep.add(b);let g=bmeshes.get(b);if(!g){g=makeBuilding(b);bmeshes.set(b,g);}
     const st=L.bld(b.id)||{};const dmg=Math.min(1,st.dmg||0);
     for(const m of g.userData.mats){m.emissive=m.emissive||new THREE.Color();m.emissive.set(st.burn>0?'#ff5010':'#000');m.emissiveIntensity=st.burn>0?.4+.3*Math.random():0;m.color.offsetHSL?0:0;}
@@ -79,7 +87,7 @@ function updateBuildings(hx,hz){const R=30;const keep=new Set();
   for(const [b,g] of bmeshes)if(!keep.has(b)){disposeGroup(g);bmeshes.delete(b);}}
 // ---------- town walls / towers (instanced, rebuilt when near set changes) ----------
 let wallGroup=null,wallKey='';
-function updateWalls(hx,hz){const R=30;const ws=L.WALLS.filter(w=>Math.abs(w.x-hx)<R&&Math.abs(w.y-hz)<R);const key=ws.length+':'+(ws[0]?ws[0].i:0)+':'+ws.map(w=>L.wallHp(w.i)>0?1:0).join('').length+':'+ws.reduce((a,w)=>a+(L.wallHp(w.i)>0?1:0),0);
+function updateWalls(hx,hz){const R=30*zoom;const ws=L.WALLS.filter(w=>Math.abs(w.x-hx)<R&&Math.abs(w.y-hz)<R);const key=ws.length+':'+(ws[0]?ws[0].i:0)+':'+ws.map(w=>L.wallHp(w.i)>0?1:0).join('').length+':'+ws.reduce((a,w)=>a+(L.wallHp(w.i)>0?1:0),0);
   if(key===wallKey)return;wallKey=key;if(wallGroup)disposeGroup(wallGroup);wallGroup=new THREE.Group();
   const up=ws.filter(w=>L.wallHp(w.i)>0),down=ws.filter(w=>L.wallHp(w.i)<=0);const m4=new THREE.Matrix4();
   if(up.length){const im=new THREE.InstancedMesh(boxG,lam('#b8b0a4'),up.length);up.forEach((w,i)=>{m4.makeScale(1,1.3,1).setPosition(w.x+.5,0,w.y+.5);im.setMatrixAt(i,m4);});im.castShadow=im.receiveShadow=true;wallGroup.add(im);}
@@ -96,8 +104,8 @@ function spriteFor(o,w,h){let s=pool.get(o);if(s&&(s.w!==w||s.h!==h)){scene.remo
   s.seen=frame;return s;}
 let frame=0;
 function updateSprites(){const hero=L.hero;const cx=hero.x,cy=hero.y;
-  const dyn=L.dyn(cx,cy,26*TILE);for(const it of dyn){const s=spriteFor(it.o,it.w,it.h);L.cap(s.c,it.ax,it.ay,it.f,true);s.tex.needsUpdate=true;place(s,it.ax,it.ay,it);}
-  const st=L.statics(cx,cy,28*TILE);for(const it of st){const s=spriteFor(it.o,it.w,it.h);const ax=it.ax??(it.o&&it.o.y!=null?null:null);
+  const dyn=L.dyn(cx,cy,(isMobile?22:26)*zoom*TILE);for(const it of dyn){const s=spriteFor(it.o,it.w,it.h);L.cap(s.c,it.ax,it.ay,it.f,true);s.tex.needsUpdate=true;place(s,it.ax,it.ay,it);}
+  const st=L.statics(cx,cy,28*zoom*TILE);for(const it of st){const s=spriteFor(it.o,it.w,it.h);const ax=it.ax??(it.o&&it.o.y!=null?null:null);
     const stale=it.dyn||frame-s.t>45||s.k!==it.k;if(it.ax==null){// wood pickups: derive anchor from closure-less y
       it.ax=(it.o.f&&it.o.x)||cx;}
     if(stale){L.cap(s.c,it.ax,it.ay,it.f,true);s.tex.needsUpdate=true;s.t=frame;s.k=it.k;}place(s,it.ax,it.ay,it);}
@@ -128,7 +136,7 @@ function updateSky(){const w=L.world;const h=w.min/60,dk=L.darkness();const sky=
   if(h>=17&&h<20)sky.copy(DAYC).lerp(DUSK,Math.min(1,(h-17)/1.5)).lerp(NIGHT,Math.max(0,(h-19)/1));else if(h>=5&&h<7)sky.copy(NIGHT).lerp(DUSK,(h-5)/1).lerp(DAYC,Math.max(0,h-6));else sky.copy(dk>.3?NIGHT:DAYC);
   const wth=w.weather;if(wth==='rain'||wth==='storm')sky.lerp(new THREE.Color('#7a8494'),.5);
   scene.background.copy(sky);scene.fog.color.copy(sky).lerp(new THREE.Color('#ffffff'),dk>.3?0:.25);
-  scene.fog.near=wth==='fog'?6:22;scene.fog.far=wth==='fog'?24:46;
+  scene.fog.near=wth==='fog'?6*zoom:30*zoom;scene.fog.far=wth==='fog'?24*zoom:60*zoom;
   const day=1-dk/0.6;hemi.intensity=.35+.9*day;hemi.color.set(dk>.3?'#8090d0':'#fff6e0');sun.intensity=.15+1.4*day*(wth==='rain'||wth==='storm'?.5:1);sun.color.set(h>=17||h<7?'#ffc890':'#fff2d0');
   heroLight.intensity=dk>.15?dk*6:0;winM.emissiveIntensity=dk>.15?dk*2.2:0;
   if(wth==='storm'&&L.frameN%400<4){hemi.intensity=3;}}
@@ -142,9 +150,10 @@ function tick(){requestAnimationFrame(tick);frame++;
   try{updateChunks(hx,hz);updateBuildings(hx,hz);updateWalls(hx,hz);updateSprites();updateParticles();updateSky();updateLabels();}catch(e){console.warn('3d',e);}
   // overlay plane follows the legacy camera rect
   overlay.position.set((L.camX+L.W/2)/TILE,.03,(L.camY+L.H/2)/TILE);overlay.scale.set(L.W/TILE,L.H/TILE,1);ovTex.needsUpdate=true;
-  const want=new THREE.Vector3(hx,0,hz-3).add(CAMOFF);if(!camInit||camPos.distanceTo(want)>20){camPos.copy(want);camInit=true;}else camPos.lerp(want,.15);
+  CAMOFF.copy(CAMBASE).multiplyScalar(zoom);const sr=Math.round(28*zoom);const sc=sun.shadow.camera;if(sc.right!==sr){sc.left=-sr;sc.right=sr;sc.top=sr;sc.bottom=-sr;sc.far=90*zoom;sc.updateProjectionMatrix();}
+  const want=new THREE.Vector3(hx,0,hz-3*zoom).add(CAMOFF);if(!camInit||camPos.distanceTo(want)>20){camPos.copy(want);camInit=true;}else camPos.lerp(want,.15);
   cam.position.copy(camPos);if(window.__shake3d)cam.position.x+=(Math.random()-.5)*.2;cam.lookAt(camPos.x-CAMOFF.x,0,camPos.z-CAMOFF.z);
-  sun.position.set(hx-12,22,hz+8);sun.target.position.set(hx,0,hz-4);heroLight.position.set(hx,1.6,hz);
+  sun.position.set(hx-12,30,hz-6*zoom+10);sun.target.position.set(hx,0,hz-6*zoom);heroLight.position.set(hx,1.6,hz);
   renderer.render(scene,cam);}
 tick();
-window.__R3={scene,cam,renderer,chunks,pool,info:()=>renderer.info};
+window.__R3={get zoom(){return zoom},setZoom,scene,cam,renderer,chunks,pool,info:()=>renderer.info};
