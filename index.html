@@ -1,40 +1,105 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#7fd3a0">
-<title>Blade Realm 3D — Meadowbrook</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Blade Realm 3D: Ten Winds</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;position:fixed;inset:0;background:#9fe3ff;font-family:system-ui,sans-serif;overscroll-behavior:none}
-canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block}
-#hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
-#hearts{position:absolute;top:8px;left:12px;font-size:20px;letter-spacing:1px;text-shadow:0 2px 0 #0005}
-#info{position:absolute;top:36px;left:12px;color:#fff;font-weight:800;font-size:12px;text-shadow:1px 1px 0 #000}
-#bossbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:40%;display:none;color:#fff;font-weight:800;font-size:11px;text-align:center;text-shadow:1px 1px 0 #000}
-#bossbar div{height:8px;background:#0007;border:2px solid #fff;border-radius:5px;overflow:hidden}#bossbar i{display:block;height:100%;background:linear-gradient(90deg,#e33,#f96)}
-#topR{position:absolute;top:8px;right:12px;display:flex;gap:6px}
-.btn{pointer-events:auto;background:#fffd;border:3px solid #2d6b4a;color:#2d4a3a;font-weight:900;border-radius:10px;padding:4px 10px;font-size:12px}
-#toast{position:absolute;top:30%;left:50%;transform:translateX(-50%);color:#fff;font-weight:900;font-size:22px;text-shadow:2px 2px 0 #000;opacity:0;transition:opacity .4s;text-align:center}
-#joy{position:absolute;left:24px;bottom:24px;width:120px;height:120px;border-radius:50%;background:#fff3;border:3px solid #fff8;pointer-events:auto;display:none}
-#knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#fffc}
-#abtns{position:absolute;right:24px;bottom:24px;display:none;pointer-events:auto}
-#abtns div{position:absolute;width:70px;height:70px;border-radius:50%;color:#fff;font:900 26px system-ui;display:flex;align-items:center;justify-content:center;border:3px solid #fff9;text-shadow:1px 1px 0 #000}
-#bA{right:0;bottom:40px;background:#e85a5acc}#bB{right:84px;bottom:0;background:#4a8ae8cc}
-.touch #joy,.touch #abtns{display:block}
-.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(#7fd3ffcc,#6fcf97cc);color:#fff;text-align:center;gap:10px;z-index:5}
-.scr h1{font-size:clamp(28px,7vw,56px);font-weight:900;text-shadow:3px 3px 0 #2d6b4a,0 0 20px #fff8}
-.scr p{font-weight:700;text-shadow:1px 1px 0 #0006;font-size:13px;max-width:90vw}
-.scr .btn{font-size:18px;padding:10px 26px}
-.hide{display:none!important}
-</style></head><body>
-<canvas id="c"></canvas>
-<div id="hud"><div id="hearts"></div><div id="info"></div>
-<div id="bossbar"><span>THORNBACK OGRE</span><div><i id="bossfill"></i></div></div>
-<div id="topR"><button class="btn" id="bloodBtn">Blood: On</button></div>
-<div id="toast"></div>
-<div id="joy"><div id="knob"></div></div>
-<div id="abtns"><div id="bA">A</div><div id="bB">B</div></div></div>
-<div class="scr" id="title"><h1>BLADE REALM<br>Meadowbrook</h1><p>WASD / arrows move · J / Space attack · K / Shift dodge<br>Clear the meadow, then face the boss in the north grove.</p><button class="btn" id="startBtn">▶ START</button></div>
-<div class="scr hide" id="over"><h1 id="overT">YOU FELL</h1><p id="overP"></p><button class="btn" id="againBtn">↻ RESTART</button></div>
-<script type="module" src="src3d/main.js"></script>
-</body></html>
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:#0a0610;font-family:system-ui,sans-serif;position:fixed;inset:0}
+#game{display:block;image-rendering:pixelated;position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh}
+#c3d{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;display:none}
+body.in3d #game{pointer-events:none}
+#labels3d{position:fixed;inset:0;pointer-events:none;z-index:5}
+.lbl{position:absolute;left:0;top:0;white-space:nowrap;font:700 12px system-ui;padding:3px 7px;border-radius:8px}
+.lbl.hint{background:rgba(20,10,30,.75);color:#ffe8a0}
+.lbl.bub{background:#fffdf4;color:#2a1a10;border:2px solid #3a2a1a;max-width:220px;white-space:normal;text-align:center;font-size:11px}
+#banner3d{position:fixed;top:16%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;display:none;z-index:6}
+#banner3d b{display:block;font:700 30px Georgia,serif;color:#ffe08a;text-shadow:2px 2px 0 #2a1008}
+#banner3d i{display:block;color:#fff4d0;font:italic 13px Georgia,serif;text-shadow:1px 1px 0 #000;border-top:2px solid #e8c060;margin-top:2px}
+.hidden{display:none!important}
+#hudWrap{position:absolute;inset:0;pointer-events:none;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+#hudL{position:absolute;top:6px;left:8px}
+.hearts{display:flex;gap:2px;flex-wrap:wrap;max-width:200px}.heart{width:16px;height:14px;image-rendering:pixelated}
+.bar{width:110px;height:6px;background:rgba(0,0,0,.6);border:1px solid #e8c060;border-radius:3px;margin-top:3px;overflow:hidden}
+.bar i{display:block;height:100%}
+#manaFill{background:linear-gradient(90deg,#3a6aff,#9af)}#hungerFill{background:linear-gradient(90deg,#c86a20,#fc6)}#stamFill{background:linear-gradient(90deg,#2a8,#8fd)}
+#clock,#gold{color:#ffefc0;font-size:10px;font-weight:700;text-shadow:1px 1px 0 #000;margin-top:2px}
+#hudR{position:absolute;top:6px;right:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+#mini{width:120px;height:90px;border-radius:6px;box-shadow:0 0 0 2px #5a3a1a,0 2px 8px #000;image-rendering:pixelated}
+.hrow{display:flex;gap:4px}
+.hbtn{pointer-events:auto;background:rgba(30,15,30,.7);border:2px solid #b08a3a;color:#ffefc0;font-size:10px;padding:3px 6px;border-radius:5px;font-weight:700}
+.hbtn.on{border-color:#c04040;color:#ffaaaa}
+#toasts{position:absolute;top:70px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:3px;align-items:center}
+#toasts div{background:rgba(30,10,30,.8);color:#ffe8a0;border:1px solid #e8c060;border-radius:5px;padding:3px 10px;font-size:12px}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle,#4a1a3a,#0a0610);z-index:20}
+#overlay h1{color:#ffd870;font-family:Georgia,serif;font-size:clamp(26px,7vw,46px);text-shadow:3px 3px 0 #4a1010,0 0 24px rgba(255,200,90,.5);letter-spacing:2px;text-align:center}
+#overlay .sub{color:#e8d0b0;font-size:13px;margin:10px 0 18px;text-align:center;max-width:460px;line-height:1.5;padding:0 16px}
+.btn{background:linear-gradient(#5a8a38,#2a5a18);border:3px solid #e8c060;color:#fff6d0;font-size:17px;font-weight:700;padding:10px 30px;border-radius:8px;margin:4px;pointer-events:auto}
+#menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,520px);max-height:88vh;overflow:auto;background:linear-gradient(#3a1a2e,#1e0c1a);border:3px solid #e8c060;border-radius:10px;padding:12px 14px;z-index:30;color:#ffefd0;box-shadow:0 0 30px #000;touch-action:pan-y}
+#menu h2{font-family:Georgia,serif;color:#ffd870;font-size:17px;margin-bottom:6px}
+#menu p{white-space:pre-wrap;font-size:13px;line-height:1.45;margin-bottom:8px}
+.mbtns{display:flex;flex-wrap:wrap;gap:6px}
+.mbtns button{background:#4a2a3a;border:2px solid #b08a3a;color:#ffefc0;border-radius:6px;padding:7px 10px;font-size:13px;font-weight:600}
+.mbtns button:disabled{opacity:.4}
+#fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .5s;z-index:40;color:#ffe8c0;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:18px;text-align:center;padding:20px}
+#fade.on{opacity:1}
+#mapov{position:absolute;inset:0;background:rgba(10,5,15,.92);z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#mapc{max-width:96vw;max-height:80vh;border:3px solid #e8c060;border-radius:6px;image-rendering:pixelated}
+#mapov .t{color:#ffd870;font-family:Georgia,serif;font-size:14px}
+#touch{position:absolute;inset:0;pointer-events:none;z-index:15;display:none}#touch.show{display:block}
+#stickZone{position:absolute;left:0;bottom:0;width:45%;height:60%;pointer-events:auto}
+#stickBase{position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,230,160,.35);left:28px;bottom:28px}
+#stickKnob{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,240,200,.35);border:2px solid rgba(255,230,160,.6);left:56px;bottom:56px}
+.tb{position:absolute;border-radius:50%;pointer-events:auto;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;text-shadow:1px 1px 0 #000;border:3px solid}
+#btnA{width:66px;height:66px;font-size:22px;right:22px;bottom:50px;background:rgba(180,40,40,.55);border-color:rgba(255,190,120,.8)}
+#btnB{width:54px;height:54px;font-size:18px;right:96px;bottom:22px;background:rgba(40,80,180,.55);border-color:rgba(140,180,255,.8)}
+#btnC{width:56px;height:56px;font-size:24px;right:100px;bottom:92px;background:rgba(130,40,190,.6);border-color:rgba(230,160,255,.85)}
+#btnW{width:38px;height:38px;font-size:16px;right:30px;bottom:130px;background:rgba(60,30,90,.6);border-color:rgba(230,190,120,.8)}
+.tb.active{transform:scale(.9);filter:brightness(1.4)}
+#wheel{position:absolute;inset:0;z-index:28;background:rgba(10,0,20,.55)}
+#wheel .sp{position:absolute;width:68px;height:68px;border-radius:50%;background:radial-gradient(#5a2a7a,#2a0c3a);border:2px solid #e8c060;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto}
+#wheel .sp span{font-size:22px}#wheel .sp small{font-size:8px;line-height:1;text-align:center}#wheel .sp.cur{box-shadow:0 0 14px #f9f}#wheel .sp:disabled{opacity:.35}
+#wheel .wc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px}
+#introBox{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(92vw,560px);background:rgba(20,8,20,.85);border:3px solid #e8c060;border-radius:10px;padding:12px 16px;z-index:22;color:#ffefd0;font-family:Georgia,serif;font-size:15px;pointer-events:auto}
+#introBox small{display:block;color:#b8a080;font-size:10px;margin-top:6px}#introSkip{position:absolute;right:8px;top:-34px}
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas><div id="labels3d"></div><div id="banner3d"></div>
+<canvas id="game" width="800" height="480"></canvas>
+<div id="hudWrap" class="hidden">
+  <div id="hudL"><div class="hearts" id="hearts"></div>
+    <div class="bar"><i id="manaFill" style="width:100%"></i></div>
+    <div class="bar"><i id="hungerFill" style="width:100%"></i></div>
+    <div class="bar" id="stam" style="display:none"><i id="stamFill"></i></div>
+    <div id="clock"></div><div id="gold"></div></div>
+  <div id="hudR"><canvas id="mini" width="120" height="90"></canvas>
+    <div class="hrow"><button class="hbtn" id="btnMap" type="button">MAP</button><button class="hbtn" id="btnBag" type="button">BAG</button><button class="hbtn" id="btnCrown" type="button">♛</button><button class="hbtn" id="btnSnd" type="button">♪</button></div>
+    <button id="bloodToggle" class="hbtn on" type="button">BLOOD: ON</button></div>
+  <div id="toasts"></div>
+</div>
+<div id="overlay">
+  <h1>BLADE REALM<br><span style="font-size:.55em">The Ten Winds</span></h1>
+  <p class="sub">Summoned from another world, you are free to live as you wish: hunt, fish, trade, befriend, love, sail to distant isles, slay dragons... or one day inherit the crown.<br><br>Move WASD · Sword/Talk J · Dodge K · Cast L · Spells Q/1-8 · Map M · Eat E</p>
+  <div><button class="btn" id="startBtn" type="button" disabled>NEW LIFE</button><button class="btn" id="contBtn" type="button" style="display:none">CONTINUE</button></div>
+</div>
+<div id="introBox" class="hidden"><button class="hbtn" id="introSkip" type="button">Skip ▶</button><div id="introText"></div><small>Tap / Enter to continue</small></div>
+<div id="menu" class="hidden"></div>
+<div id="mapov" class="hidden"><div class="t">World Map — tap an attuned waystone (cyan) to fast travel</div><canvas id="mapc"></canvas><button class="hbtn" id="mapClose" type="button">CLOSE</button></div>
+<div id="wheel" class="hidden"></div>
+<div id="fade"></div>
+<div id="touch">
+  <div id="stickZone"><div id="stickBase"></div><div id="stickKnob"></div></div>
+  <div class="tb" id="btnA">A</div><div class="tb" id="btnB">B</div><div class="tb" id="btnC">🔥</div><div class="tb" id="btnW">✦</div>
+</div>
+<script src="src3d/legacy/game3d.js?v=1792079084"></script>
+<script type="module" src="src3d/world3d.js?v=1792079084"></script>
+</body>
+</html>
