@@ -1,0 +1,6 @@
+const {test}=require("@playwright/test");
+test("v22",async({page})=>{await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{window.__FAST=true;localStorage.setItem("realmIntroSeen","1");});await page.goto("/");await page.waitForFunction(()=>window.__READY);await page.click("#startBtn");await page.waitForFunction(()=>__BA.state==="play");
+ await page.evaluate(()=>{const B=__BA;B.closeMenu();B.P.titles=["Dragonslayer of Aldmoor"];B.P.guild=B.P.guild||{};B.P.guild.reg=true;B.saveGame();});
+ await page.addInitScript(()=>{if(sessionStorage.getItem("a"))return;sessionStorage.setItem("a","1");const d=JSON.parse(localStorage.getItem("realmTenWindsSave4"));d.P.lastSaved=Date.now()-4*86400000;localStorage.setItem("realmTenWindsSave4",JSON.stringify(d));});
+ await page.goto("/");await page.waitForFunction(()=>window.__READY);await page.click("#contBtn");await page.waitForSelector("#awayScroll");await page.waitForTimeout(600);await page.screenshot({path:"/workspace/shots-blade/v22-away.png"});
+ await page.click("#awayOk");await page.evaluate(()=>document.getElementById("btnPause").click());await page.click("#menu button:has-text('Journal')");await page.waitForTimeout(400);await page.screenshot({path:"/workspace/shots-blade/v22-journal.png"});});

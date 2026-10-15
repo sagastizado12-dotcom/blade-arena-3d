@@ -1,0 +1,5 @@
+const {test}=require("@playwright/test");
+const boot=async page=>{await page.addInitScript(()=>{window.__FAST=true;localStorage.setItem("realmIntroSeen","1");});await page.goto("/");await page.waitForFunction(()=>window.__READY);await page.click("#startBtn");await page.waitForFunction(()=>__BA.state==="play");await page.evaluate(()=>{__BA.closeMenu();__BA.world.min=12*60;});};
+test("marker",async({page})=>{await boot(page);await page.evaluate(()=>{__BA.toggleMap();for(let i=0;i<10;i++)document.getElementById("mapZout").click();});await page.waitForTimeout(400);await page.screenshot({path:"/workspace/shots-blade/v18-demon-marker.png"});});
+test("fight",async({page})=>{await boot(page);await page.evaluate(()=>{const B=__BA,c=B.demonCastle();B.mobs.length=0;B.teleport(c.x+3,c.y+14);});await page.keyboard.down("ArrowUp");
+  await page.waitForFunction(()=>__BA.mobs.some(m=>m.malz&&!m.dead),null,{timeout:15000});await page.keyboard.up("ArrowUp");await page.waitForTimeout(700);await page.screenshot({path:"/workspace/shots-blade/v18-malz-fight.png"});});

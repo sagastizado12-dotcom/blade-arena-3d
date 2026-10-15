@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#7fd3a0">
+<title>Blade Realm 3D — Meadowbrook</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;position:fixed;inset:0;background:#9fe3ff;font-family:system-ui,sans-serif;overscroll-behavior:none}
+canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block}
+#hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+#hearts{position:absolute;top:8px;left:12px;font-size:20px;letter-spacing:1px;text-shadow:0 2px 0 #0005}
+#info{position:absolute;top:36px;left:12px;color:#fff;font-weight:800;font-size:12px;text-shadow:1px 1px 0 #000}
+#bossbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:40%;display:none;color:#fff;font-weight:800;font-size:11px;text-align:center;text-shadow:1px 1px 0 #000}
+#bossbar div{height:8px;background:#0007;border:2px solid #fff;border-radius:5px;overflow:hidden}#bossbar i{display:block;height:100%;background:linear-gradient(90deg,#e33,#f96)}
+#topR{position:absolute;top:8px;right:12px;display:flex;gap:6px}
+.btn{pointer-events:auto;background:#fffd;border:3px solid #2d6b4a;color:#2d4a3a;font-weight:900;border-radius:10px;padding:4px 10px;font-size:12px}
+#toast{position:absolute;top:30%;left:50%;transform:translateX(-50%);color:#fff;font-weight:900;font-size:22px;text-shadow:2px 2px 0 #000;opacity:0;transition:opacity .4s;text-align:center}
+#joy{position:absolute;left:24px;bottom:24px;width:120px;height:120px;border-radius:50%;background:#fff3;border:3px solid #fff8;pointer-events:auto;display:none}
+#knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#fffc}
+#abtns{position:absolute;right:24px;bottom:24px;display:none;pointer-events:auto}
+#abtns div{position:absolute;width:70px;height:70px;border-radius:50%;color:#fff;font:900 26px system-ui;display:flex;align-items:center;justify-content:center;border:3px solid #fff9;text-shadow:1px 1px 0 #000}
+#bA{right:0;bottom:40px;background:#e85a5acc}#bB{right:84px;bottom:0;background:#4a8ae8cc}
+.touch #joy,.touch #abtns{display:block}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(#7fd3ffcc,#6fcf97cc);color:#fff;text-align:center;gap:10px;z-index:5}
+.scr h1{font-size:clamp(28px,7vw,56px);font-weight:900;text-shadow:3px 3px 0 #2d6b4a,0 0 20px #fff8}
+.scr p{font-weight:700;text-shadow:1px 1px 0 #0006;font-size:13px;max-width:90vw}
+.scr .btn{font-size:18px;padding:10px 26px}
+.hide{display:none!important}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="hud"><div id="hearts"></div><div id="info"></div>
+<div id="bossbar"><span>THORNBACK OGRE</span><div><i id="bossfill"></i></div></div>
+<div id="topR"><button class="btn" id="bloodBtn">Blood: On</button></div>
+<div id="toast"></div>
+<div id="joy"><div id="knob"></div></div>
+<div id="abtns"><div id="bA">A</div><div id="bB">B</div></div></div>
+<div class="scr" id="title"><h1>BLADE REALM<br>Meadowbrook</h1><p>WASD / arrows move · J / Space attack · K / Shift dodge<br>Clear the meadow, then face the boss in the north grove.</p><button class="btn" id="startBtn">▶ START</button></div>
+<div class="scr hide" id="over"><h1 id="overT">YOU FELL</h1><p id="overP"></p><button class="btn" id="againBtn">↻ RESTART</button></div>
+<script type="module" src="src3d/main.js"></script>
+</body></html>

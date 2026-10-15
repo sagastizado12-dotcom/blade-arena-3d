@@ -1,0 +1,11 @@
+const {test}=require("@playwright/test");const fs=require("fs");
+const boot=async page=>{await page.addInitScript(()=>{window.__FAST=true;localStorage.setItem("realmIntroSeen","1");});await page.goto("/");await page.waitForFunction(()=>window.__READY);await page.click("#startBtn");await page.waitForFunction(()=>__BA.state==="play");};
+const ruin=()=>{const B=__BA,W=B.world;const S=B.SETS.find(s=>s.id!==0&&!s.demon&&B.KINGDOMS.every(k=>k.cap!==s.id)&&s.kind.includes("village"));const sid=S.id;
+  for(const b of B.buildings)if(b&&b.s===sid&&!b.cabin)W.bld[b.id].dmg=1;W.walls=W.walls||{};for(const w of B.WALLS2())if(w.s===sid)W.walls[w.i]=0;for(const g of B.GATES2())if(g.s===sid)g.hp=0;
+  const P=B.PROPS();W.pdmg=W.pdmg||{};P.forEach((p,i)=>{if(Math.hypot(p.x-S.x,p.y-S.y)<=S.r+1)W.pdmg[i]=1;});B.ruinCheck(sid);B.closeMenu();W.min=15*60;B.teleport(S.x,S.y+3);B.mobs.length=0;return sid;};
+test("rulers",async({page})=>{await boot(page);const d=await page.evaluate(()=>__BA.rulerSheet());fs.writeFileSync("/workspace/shots-blade/v16-rulers.png",Buffer.from(d.split(",")[1],"base64"));});
+test("ruins",async({page})=>{await boot(page);await page.evaluate(ruin);for(let i=0;i<40;i++)await page.evaluate(()=>__BA.update());await page.waitForTimeout(300);await page.screenshot({path:"/workspace/shots-blade/v16-city-ruins.png"});
+  await page.evaluate(()=>{const B=__BA;const sid=B.SETS.findIndex((s,i)=>B.ruinOf(i));B.advanceMinutes(60*24*5);B.closeMenu();const S=B.SETS[sid];B.world.min=11*60;B.P.hunger=100;B.hero.hp=B.hero.maxHp;B.teleport(S.x,S.y+3);});await page.waitForTimeout(3500);await page.waitForTimeout(400);await page.screenshot({path:"/workspace/shots-blade/v16-rebuild.png"});});
+test("duel",async({page})=>{await boot(page);await page.evaluate(()=>{const B=__BA;B.world.min=13*60;const S=B.SETS[0];B.teleport(S.x+4,S.y+6);B.mobs.length=0;for(let i=0;i<5;i++)B.update();B.issueChallenge(false);
+  [...document.querySelectorAll("#menu button")].find(b=>/Accept/.test(b.textContent)).click();});for(let i=0;i<30;i++){await page.waitForTimeout(80);}
+  await page.evaluate(()=>{__BA.closeMenu();__BA.hero.hp=__BA.hero.maxHp;});await page.waitForTimeout(500);await page.screenshot({path:"/workspace/shots-blade/v16-duel.png"});});

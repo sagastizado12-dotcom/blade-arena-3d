@@ -1,0 +1,3 @@
+const {test}=require("@playwright/test");
+test("pause",async({page})=>{await page.addInitScript(()=>{window.__FAST=true;localStorage.setItem("realmIntroSeen","1");});await page.goto("/");await page.waitForFunction(()=>window.__READY);await page.click("#startBtn");await page.waitForFunction(()=>__BA.state==="play");
+ await page.evaluate(()=>{__BA.closeMenu();for(let i=0;i<10;i++){__BA.buildHUD();document.getElementById("btnPause").click();__BA.closeMenu();}document.getElementById("btnPause").click();});await page.waitForTimeout(300);await page.screenshot({path:"/workspace/shots-blade/v17-pause-menu.png"});});

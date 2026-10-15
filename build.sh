@@ -1,0 +1,7 @@
+#!/bin/sh
+cd "$(dirname "$0")"
+{ echo "(function(){"; cat src/a_setup.js src/b_old.js src/b2_spawn.js src/c_world.js src/c2_layout.js src/c3_water.js src/d_ents.js src/e_sim.js src/f_main.js src/g_loop.js src/h_magic.js src/i_audio.js src/j_anim.js src/k_wood.js src/l_parts.js src/m_guild.js src/n_interior.js src/o_chibi.js src/o2_sfc.js src/p_foes.js src/q_adv.js src/r_style.js src/s_walls.js src/t_monsters.js src/u_quests.js src/v_pixel.js src/v2_regions.js src/w_clash.js src/x_nomtn.js src/y_feel.js src/yc_spells.js src/yq_spellfx.js src/ys_thunder.js src/yd_jobs.js src/yf_life.js src/yg_guildhall.js src/yb_walk.js src/ya_homes.js src/yy_scroll.js src/yk_menu.js src/yl_royal.js src/yn_flirt.js src/yo_night.js src/yh_bag.js src/yp_pace.js src/yt_guards.js src/yz_hud.js src/yr_guildsell.js src/yu_growth.js src/yv_separate.js src/yw_families.js src/yx_romance.js src/zk_kingdoms.js src/zl_destruct.js src/zm_trees.js src/zn_tough.js src/zo_map.js src/zq_villjobs.js src/zr_homemap.js src/zs_leader.js src/zt_family.js src/zu_sextag.js src/zw_monart.js src/zy_ruin.js src/zz_charge.js src/zz_duel.js src/zz_rulers.js src/zz_demonfall.js src/zz_atone.js src/zz_mapfix.js src/zz_menufix.js src/zz_duel2.js src/zz_raidalert.js src/zz_saveio.js src/zz_journal.js src/yi_hunger.js src/yj_portrait.js src/zz_hudgrid.js src/z_boot.js; echo "})();"; } > game.js
+cp src/shell.html index.html
+V=$(date +%s); sed "s/__V__/$V/" src/sw.js > sw.js
+sed -i "s/__BUILDV__/$V/g" game.js index.html
+echo "{\"v\":\"$V\"}" > version.json
